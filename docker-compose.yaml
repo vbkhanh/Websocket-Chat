@@ -1,0 +1,36 @@
+version: '3.9'
+
+name: websocket-chat
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:latest
+    restart: "always"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  adminer:
+    image: adminer:4.8.1
+    restart: "always"
+    ports:
+      - "8765:8080"
+    depends_on:
+      - db
+  
+volumes:
+  postgres_data:
