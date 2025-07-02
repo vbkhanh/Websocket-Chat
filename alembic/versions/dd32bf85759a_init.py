@@ -40,7 +40,9 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('group_id', sa.INT(), nullable=False),
     sa.Column('user_id', sa.INT(), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_messages')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_messages_user_id_users')),
+    sa.ForeignKeyConstraint(['group_id'], ['groups.id'], name=op.f('fk_messages_group_id_groups')),
     )
 
 
