@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_session
 from app.schemas import GroupOut, GroupCreate
@@ -9,7 +9,7 @@ router = APIRouter(
     prefix="/groups"
 )
 
-@router.post("", response_model=GroupOut)
+@router.post("", response_model=GroupOut, status_code=status.HTTP_201_CREATED)
 async def create_group(group_in: GroupCreate, db: AsyncSession = Depends(get_session)):
     result = await db.scalars(select(Group).where(Group.name == group_in.name))
     existing_group = result.first()
