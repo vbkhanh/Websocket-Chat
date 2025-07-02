@@ -66,7 +66,6 @@ async def test_list_groups():
 
 @pytest.mark.asyncio
 async def test_get_group_messages(test_sessionmaker):
-    # Step 1: Create user & group
     async with LifespanManager(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -76,7 +75,6 @@ async def test_get_group_messages(test_sessionmaker):
             group_response = await ac.post("/groups", json={"name": "testgroup"})
             assert group_response.status_code == 201
 
-    # Step 2: Insert message manually into DB
     async with test_sessionmaker() as session:
         user = await session.scalars(select(User).where(User.username == "khanh"))
         group = await session.scalars(select(Group).where(Group.name == "testgroup"))
@@ -87,8 +85,6 @@ async def test_get_group_messages(test_sessionmaker):
         session.add(Message(content="Hello test history!", user_id=user.id, group_id=group.id))
         await session.commit()
 
-
-    # Step 3: Fetch group messages
     async with LifespanManager(app):
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as ac:
