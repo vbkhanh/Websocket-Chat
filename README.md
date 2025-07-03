@@ -8,6 +8,7 @@ docker compose up --build -d
 Run test:
 docker-compose exec app env PYTHONPATH=/WORKDIR pytest
 
+Note: You need to create user and group before sending messages
 
 Architecture:
 
