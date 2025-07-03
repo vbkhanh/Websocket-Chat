@@ -1,0 +1,19 @@
+
+
+Brief Report for Websocket Chat
+
+
+Tasks Done:
++ Broadcasting Websocket implementation
++ Database design and connection
++ Docker implementation 
++ User Creation
++ Group Creation and listing
++ Message storage and listing by Group
++ Unit Testing
+
+Tasks not done:
++ Jwt based authentication
++ User listing and management
++ 1-1 chatting
++ Hosting 
