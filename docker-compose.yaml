@@ -11,6 +11,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     env_file:
       - .env
 
@@ -24,6 +25,14 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file:
       - .env
+  
+  redis:
+    image: redis:7
+    restart: "always"
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./tmp/rd:/data
 
   adminer:
     image: adminer:4.8.1
