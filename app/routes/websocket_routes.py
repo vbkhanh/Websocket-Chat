@@ -7,8 +7,8 @@ from app.models import User, Message, Group
 import json
 from app.redis_pubsub import RedisPubSub
 import asyncio
+from starlette.websockets import WebSocketState
 
-redis_pubsub = RedisPubSub()
 
 router = APIRouter(
     prefix="/ws"
@@ -17,6 +17,8 @@ router = APIRouter(
 
 @router.websocket("")
 async def websocket_endpoint(websocket: WebSocket, group_name: str, db: AsyncSession = Depends(get_session)):
+    redis_pubsub = RedisPubSub()
+
     await websocket.accept()
 
     # Validate group
@@ -40,12 +42,8 @@ async def websocket_endpoint(websocket: WebSocket, group_name: str, db: AsyncSes
     async def sender():
         try:
             while True:
-                raw_data = await websocket.receive_text()
-                try:
-                    data = json.loads(raw_data)
-                except json.JSONDecodeError:
-                    await websocket.send_json({"error": "Invalid JSON format"})
-                    continue
+                data = await websocket.receive_json()
+               
 
                 username = data.get("username")
                 message = data.get("message")
@@ -60,20 +58,24 @@ async def websocket_endpoint(websocket: WebSocket, group_name: str, db: AsyncSes
                     await websocket.send_json({"error": f"User {username} not found"})
                     continue
 
-                await redis_pubsub.publish(group_name, {"socket_data": raw_data})
-
                 msg = Message(content=message, user_id=user_id, group_id=group_id)
                 db.add(msg)
                 await db.commit()
+
+                await redis_pubsub.publish(group_name, {
+                    "username": username,
+                    "message": message
+                })
 
         except WebSocketDisconnect:
             return
 
         except Exception as e:
-            await websocket.send_json({"error": "Unexpected server error"})
-            if websocket.client_state.value == 1:  # CONNECTED
+           if websocket.client_state == WebSocketState.CONNECTED:
+                await websocket.send_json(
+                    {"error": "Unexpected server error"}
+                )
                 await websocket.close(code=1011)
-            return
 
     # One task for listening to Redis and sending to WebSocket
     async def receiver():
@@ -81,13 +83,31 @@ async def websocket_endpoint(websocket: WebSocket, group_name: str, db: AsyncSes
             async for message in pubsub.listen():
                 if message['type'] == 'message':
                     payload = json.loads(message['data'])
-                    await websocket.send_text(payload["socket_data"])
+                    await websocket.send_json(payload)
         except Exception as e:
-            await websocket.send_json({"error": "Redis subscription failed"})
-            if websocket.client_state.value == 1:
+            if websocket.client_state == WebSocketState.CONNECTED:
+                await websocket.send_json(
+                    {"error": "Unexpected server error"}
+                )
                 await websocket.close(code=1011)
 
-    await asyncio.gather(sender(), receiver())
+    try:
+        sender_task = asyncio.create_task(sender())
+        receiver_task = asyncio.create_task(receiver())
+
+        done, pending = await asyncio.wait(
+            {sender_task, receiver_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        for task in pending:
+            task.cancel()
+
+        await asyncio.gather(*pending, return_exceptions=True)
+
+    finally:
+        await redis_pubsub.unsubscribe(group_name)
+        await redis_pubsub.close()
 
     # await manager.connect(group_name, websocket)
     # try:
