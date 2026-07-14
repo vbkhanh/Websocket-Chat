@@ -108,6 +108,7 @@ async def websocket_endpoint(websocket: WebSocket, group_name: str, db: AsyncSes
     finally:
         await redis_pubsub.unsubscribe(group_name)
         await redis_pubsub.close()
+        
 
     # await manager.connect(group_name, websocket)
     # try:
