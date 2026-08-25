@@ -6,7 +6,7 @@ docker compose up --build -d
 
 
 Run test:
-docker-compose exec app env PYTHONPATH=/WORKDIR pytest
+docker compose -f docker-compose.yaml -f docker-compose.test.yaml run --rm app pytest
 
 Note: You need to create user and group before sending messages
 
