@@ -1,0 +1,15 @@
+services:
+  app:
+    env_file:
+      - .env.test
+    command: pytest
+
+  db:
+    env_file:
+      - .env.test
+
+  redis:
+    # Optional, but useful if your tests use Redis
+    env_file:
+      - .env.test
+      
