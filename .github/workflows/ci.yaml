@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -12,23 +11,39 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # - name: Run tests
-      #   run: |
-      #     docker compose \
-      #       -f docker-compose.yaml \
-      #       -f docker-compose.test.yaml \
-      #       run --rm app pytest
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate compose config
+        run: |
+          docker compose \
+            -f docker-compose.yaml \
+            -f docker-compose.test.yaml \
+            config -q
+
+      - name: Build images with cache
+        uses: docker/bake-action@v5
+        with:
+          files: |
+            docker-compose.yaml
+            docker-compose.test.yaml
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+          load: true
+
       - name: Start test environment
         run: |
           docker compose \
             -f docker-compose.yaml \
             -f docker-compose.test.yaml \
-            up -d
+            up -d --wait --wait-timeout 60
 
       - name: Run tests
         run: |
@@ -37,6 +52,13 @@ jobs:
             -f docker-compose.test.yaml \
             exec -T app pytest -v
 
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose \
+            -f docker-compose.yaml \
+            -f docker-compose.test.yaml \
+            logs
 
       - name: Cleanup
         if: always()

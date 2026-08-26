@@ -1,0 +1,29 @@
+services:
+  app:
+    image: ${REGISTRY:-ghcr.io/yourorg}/websocket-chat:${TAG:?TAG is required}
+    build: !reset null   # never build from source in prod; use the CI-built image
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  db:
+    ports: !reset []       # never expose Postgres publicly
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  redis:
+    ports: !reset []       # never expose Redis publicly
+
+  adminer:
+    profiles: ["debug-only"]   # not started unless explicitly requested

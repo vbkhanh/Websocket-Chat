@@ -1,26 +1,31 @@
-version: '3.9'
-
 name: websocket-chat
 
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - path: .env
         required: false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
   db:
-    image: postgres:17
-    restart: "always"
+    image: postgres:17.2
+    restart: unless-stopped
     ports:
       - "5432:5432"
     volumes:
@@ -33,22 +38,27 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-  
+
   redis:
-    image: redis:7
-    restart: "always"
+    image: redis:7.4
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - ./tmp/rd:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   adminer:
     image: adminer:4.8.1
-    restart: "always"
+    restart: unless-stopped
     ports:
       - "8765:8080"
     depends_on:
       - db
-  
+
 volumes:
   postgres_data:
