@@ -1,14 +1,28 @@
-services:
-  app:
-    env_file:
-      - .env.test
 
-  db:
-    env_file:
-      - .env.test
-
-  redis:
-    # Optional, but useful if your tests use Redis
-    env_file:
-      - .env.test
-      
+  services:
+    app:
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_HOST: db
+        POSTGRES_PORT: 5432
+        POSTGRES_DB: test_db
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
+        REDIS_DB: 1
+      # env_file:
+      #   - .env.test
+    db:
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+      # env_file:
+      #   - .env.test
+    redis:
+      environment:
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
+        REDIS_DB: 1
+      # env_file:
+      #   - .env.test
