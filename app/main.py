@@ -16,6 +16,6 @@ if settings.ALLOW_ORIGINS:
 
 app.include_router(api_router)
 
-@app.get("/", status_code=200)
-async def health():
-    return {"message": "What's Up? Bro!"}
+@app.get("/health")
+def health():
+    return {"status": "ok"}
