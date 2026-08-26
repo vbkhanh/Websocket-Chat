@@ -2,7 +2,6 @@ services:
   app:
     env_file:
       - .env.test
-    command: pytest
 
   db:
     env_file:
