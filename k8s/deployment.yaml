@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: websocket-chat-app     
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: websocket-chat-app     
+
+  template:
+    metadata:
+      labels:
+        app: websocket-chat-app     
+
+    spec:
+      containers:
+        - name: websocket-chat-app     
+          image: websocket-chat-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: websocket-chat-config
+            - secretRef:
+                name: websocket-chat-secret
