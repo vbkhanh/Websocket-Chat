@@ -9,7 +9,7 @@ spec:
 
   selector:
     matchLabels:
-      app: websocket-chat-app     
+      app: websocket-chat-app
 
   template:
     metadata:
