@@ -3,7 +3,7 @@ kind: Deployment
 
 metadata:
   name: websocket-chat-app     
-
+  namespace: websocket-chat-app
 spec:
   replicas: 2
 
