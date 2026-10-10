@@ -1,0 +1,21 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: websocket-chat
+  namespace: argocd
+spec:
+  project: websocket-chat-project
+  source:
+    repoURL: https://github.com/vbkhanh/Websocket-Chat.git
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: websocket-chat-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    # syncOptions:
+    #   - CreateNamespace=true
